@@ -49,7 +49,7 @@ class AuthPage extends StatelessWidget {
                     if (account != null) {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => HomePage()),
+                        MaterialPageRoute(builder: (context) => HomePage.create()),
                       );
                     }
                   },
