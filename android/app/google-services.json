@@ -12,7 +12,20 @@
           "package_name": "com.simarjot.travaly"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "830954724405-c65k0bndbst3oitkoj2etlm6rh8071n8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.simarjot.travaly",
+            "certificate_hash": "0c31c721abb7a44803fb306e6ca4daa786b8d6fd"
+          }
+        },
+        {
+          "client_id": "830954724405-7rpg6chkktfie4ur4frjn84ennv62ef4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBYDIH-5AOWYteVuF-4SoVq2oqvEuk98HQ"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "830954724405-7rpg6chkktfie4ur4frjn84ennv62ef4.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "830954724405-qn3kfk9j0caelko1so1t26u75dm99cmb.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.simarjot.travaly.travaly"
+              }
+            }
+          ]
         }
       }
     }
