@@ -4,3 +4,5 @@ part of 'home_bloc.dart';
 sealed class HomeEvent {}
 
 class HomeInitialDataRequested extends HomeEvent {}
+
+class HomeErrorConsumed extends HomeEvent {}

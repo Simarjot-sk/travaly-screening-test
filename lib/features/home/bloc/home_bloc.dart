@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
@@ -14,10 +16,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   HomeBloc({required TravalyRepo travalyRepo})
     : _travalyRepo = travalyRepo,
       super(HomeState()) {
-    on<HomeEvent>(_initialDataRequested);
+    on<HomeInitialDataRequested>(_initialDataRequested);
+    on<HomeErrorConsumed>(_onErrorConsumed);
   }
 
-  void _initialDataRequested(HomeEvent event, Emitter<HomeState> emit) async {
+  void _initialDataRequested(HomeInitialDataRequested event, Emitter<HomeState> emit) async {
+    emit(state.copyWith(isLoading: true));
     final tokenAquired = await _travalyRepo.getVisitorToken();
     if (!tokenAquired) {
       emit(
@@ -39,12 +43,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       );
       return;
     }
-    
-    emit(
-      state.copyWith(
-        isLoading: false,
-        hotels: hotels,
-      ),
-    );
+
+    emit(state.copyWith(isLoading: false, hotels: hotels));
+  }
+
+  void _onErrorConsumed(HomeErrorConsumed event, Emitter<HomeState> emit) {
+    emit(state.copyWith(errorMessage: ''));
   }
 }

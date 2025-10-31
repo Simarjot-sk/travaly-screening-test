@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:travaly/features/home/bloc/home_bloc.dart';
 import 'package:travaly/features/home/widgets/hotel_list.dart';
+import 'package:travaly/features/home/widgets/hotel_search_bar.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage._({super.key});
@@ -17,22 +18,38 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-              Text(
-                'Recommended Hotels',
-                style: TextTheme.of(context).displayMedium?.copyWith(
-                  color: ColorScheme.of(context).onSurface,
+    return BlocListener<HomeBloc, HomeState>(
+      listenWhen: (previous, current) =>
+          previous.errorMessage != current.errorMessage,
+      listener: (context, state) {
+        if (state.errorMessage.isNotEmpty) {
+          if (state.errorMessage.isNotEmpty) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.errorMessage)));
+            context.read<HomeBloc>().add(HomeErrorConsumed());
+          }
+        }
+      },
+      child: Scaffold(
+        body: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              children: [
+                const SizedBox(height: 20),
+                HotelSearchBar(),
+                const SizedBox(height: 20),
+                Text(
+                  'Recommended Hotels',
+                  style: TextTheme.of(context).displayMedium?.copyWith(
+                    color: ColorScheme.of(context).onSurface,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              Expanded(child: HotelList()),
-            ],
+                const SizedBox(height: 20),
+                Expanded(child: HotelList()),
+              ],
+            ),
           ),
         ),
       ),

@@ -49,7 +49,9 @@ class AuthPage extends StatelessWidget {
                     if (account != null) {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => HomePage.create()),
+                        MaterialPageRoute(
+                          builder: (context) => HomePage.create(),
+                        ),
                       );
                     }
                   },
@@ -59,6 +61,17 @@ class AuthPage extends StatelessWidget {
                       color: ColorScheme.of(context).onPrimaryContainer,
                     ),
                   ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => HomePage.create(),
+                      ),
+                    );
+                  },
+                  child: Text('Skip'),
                 ),
                 Spacer(flex: 2),
               ],

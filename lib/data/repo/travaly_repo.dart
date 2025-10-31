@@ -3,7 +3,9 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
+import 'package:intl/intl.dart';
 import 'package:travaly/data/model/property_dto.dart';
+import 'package:travaly/data/model/search_autocomplete_item_dto.dart';
 import 'package:travaly/data/repo/device_info_repo.dart';
 
 class TravalyRepo {
@@ -18,22 +20,6 @@ class TravalyRepo {
 
   Future<bool> getVisitorToken() async {
     try {
-      final deviceInfo = DeviceInfoPlugin();
-      if (Platform.isAndroid) {
-        AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-        androidInfo.model;
-        androidInfo.brand;
-        androidInfo.device;
-        androidInfo.name;
-        androidInfo.manufacturer;
-        androidInfo.fingerprint;
-      } else {
-        IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
-        iosInfo.model;
-        //apple
-        iosInfo.modelName;
-      }
-
       final request = {
         "action": "deviceRegister",
         "deviceRegister": await _deviceInfoRepo.getDeviceInfo(),
@@ -125,6 +111,154 @@ class TravalyRepo {
     } catch (err, stack) {
       log(
         'error while parsing property address',
+        error: err,
+        stackTrace: stack,
+      );
+      return null;
+    }
+  }
+
+  Future<List<SearchAutocompleteItemDto>?> getSearchAutoCompleteSuggestions(
+    String query,
+  ) async {
+    try {
+      final request = {
+        "action": "searchAutoComplete",
+        "searchAutoComplete": {
+          "inputText": query,
+          "searchType": ["byCity", "byState", "byCountry", "byPropertyName"],
+          "limit": 10,
+        },
+      };
+      final response = await _dio.post(
+        '',
+        data: jsonEncode(request),
+        options: Options(
+          headers: {'authtoken': authToken, 'visitortoken': visitorToken},
+        ),
+      );
+
+      if (response.data['status'] != true) {
+        return null;
+      }
+      if (response.data['data']?['present'] != true) {
+        return null;
+      }
+      final list = response.data['data']['autoCompleteList'];
+      return [
+        ..._parseList(list['byCity'], 'place'),
+        ..._parseList(list['byState'], 'place'),
+        ..._parseList(list['byCountry'], 'place'),
+        ..._parseList(list['byPropertyName'], 'property'),
+      ];
+    } catch (err, stack) {
+      log('error loading search suggestions', error: err, stackTrace: stack);
+      return null;
+    }
+  }
+
+  List<SearchAutocompleteItemDto> _parseList(dynamic data, String itemType) {
+    try {
+      final items = data['listOfResult'] as Iterable;
+      return items
+          .map(
+            (e) => SearchAutocompleteItemDto(
+              itemName: e['valueToDisplay'],
+              itemType: itemType,
+              searchType: e['searchArray']['type'],
+              queries: (e['searchArray']['query'] as List)
+                  .map((e) => e.toString())
+                  .toList(),
+            ),
+          )
+          .toList();
+    } catch (err, stack) {
+      log(
+        'error while parsing autocomplete list',
+        error: err,
+        stackTrace: stack,
+      );
+      return [];
+    }
+  }
+
+  Future<List<PropertyDto>?> getSearchResults(
+    DateTime? startDate,
+    DateTime? endDate,
+    int adultCount,
+    int kidCount,
+    SearchAutocompleteItemDto autoCompleteItem,
+    int page,
+  ) async {
+    try {
+      final dateFormat = DateFormat('yyyy-MM-dd');
+      final request = {
+        "action": "getSearchResultListOfHotels",
+        "getSearchResultListOfHotels": {
+          "searchCriteria": {
+            if (startDate != null && endDate != null)
+              "checkIn": dateFormat.format(startDate),
+            if (startDate != null && endDate != null)
+              "checkOut": dateFormat.format(endDate),
+            "rooms": 1,
+            "adults": adultCount,
+            "children": kidCount,
+            "searchType": autoCompleteItem.searchType,
+            "searchQuery": autoCompleteItem.queries,
+            "accommodation": [
+              "all",
+              "hotel",
+              //allowed "hotel","resort","Boat House","bedAndBreakfast","guestHouse","Holidayhome","cottage","apartment","Home Stay", "hostel","Guest House","Camp_sites/tent","co_living","Villa","Motel","Capsule Hotel","Dome Hotel","all"
+            ],
+            "arrayOfExcludedSearchType": [
+              "street", //allowed street, city, state, country
+            ],
+            "highPrice": "3000000",
+            "lowPrice": "0",
+            "limit": 5,
+            "page": page,
+            "preloaderList": [],
+            "currency": "INR",
+            "rid": 0,
+          },
+        },
+      };
+
+      final response = await _dio.post(
+        '',
+        data: jsonEncode(request),
+        options: Options(
+          headers: {'authtoken': authToken, 'visitortoken': visitorToken},
+        ),
+      );
+
+      if (response.data['status'] != true) {
+        return null;
+      }
+
+      final hotelList = response.data['data']['arrayOfHotelList'] as Iterable;
+      return hotelList
+          .map((e) => _parsePropertyFromSearchResult(e))
+          .whereType<PropertyDto>()
+          .toList();
+    } catch (err, stack) {
+      log('error while loading search results', error: err, stackTrace: stack);
+      return null;
+    }
+  }
+
+  PropertyDto? _parsePropertyFromSearchResult(dynamic data) {
+    try {
+      return PropertyDto(
+        propertyName: data['propertyName'],
+        propertyImage: data['propertyImage']['fullUrl'],
+        propertyStar: data['propertyStar'],
+        address: _parsePropertyAddress(data['propertyAddress']),
+        rate: data['markedPrice']['displayAmount'],
+      );
+    } catch (err, stack) {
+      log(
+        'error while parsing property from search results',
         error: err,
         stackTrace: stack,
       );
