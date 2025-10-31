@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:travaly/features/auth/widgets/bush.dart';
 import 'package:travaly/features/auth/widgets/logo.dart';
+import 'package:travaly/features/home/home_page.dart';
 
 class AuthPage extends StatelessWidget {
   const AuthPage({super.key});
@@ -44,7 +45,13 @@ class AuthPage extends StatelessWidget {
                 Spacer(flex: 6),
                 FloatingActionButton.extended(
                   onPressed: () async {
-                    authenticateWithGoogle();
+                    final account = await authenticateWithGoogle();
+                    if (account != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => HomePage.create()),
+                      );
+                    }
                   },
                   label: Text(
                     'Login with Google',

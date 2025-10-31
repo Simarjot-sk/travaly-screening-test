@@ -1,7 +1,11 @@
 import 'dart:async';
+import 'package:dio/dio.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:travaly/data/repo/device_info_repo.dart';
+import 'package:travaly/data/repo/travaly_repo.dart';
 import 'package:travaly/features/auth/auth_page.dart';
 import 'package:travaly/theme/color_scheme.dart';
 import 'firebase_options.dart';
@@ -17,24 +21,52 @@ class Application extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData(
-        cardTheme: CardThemeData(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(20.0)),
-          ),
-          elevation: 0.0,
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider(create: (_) => _initDio()),
+        RepositoryProvider(create: (_) => DeviceInfoRepo()),
+        RepositoryProvider(
+          create: (context) =>
+              TravalyRepo(dio: context.read(), deviceInfoRepo: context.read()),
         ),
+      ],
+      child: MaterialApp(
+        theme: ThemeData(
+          cardTheme: CardThemeData(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(20.0)),
+            ),
+            elevation: 0.0,
+          ),
 
-        useMaterial3: true,
-        textTheme: GoogleFonts.nunitoTextTheme(Theme.of(context).textTheme),
-        colorScheme: createColorScheme(),
+          useMaterial3: true,
+          textTheme: GoogleFonts.nunitoTextTheme(Theme.of(context).textTheme),
+          colorScheme: createColorScheme(),
+        ),
+        home: AuthPage(),
       ),
-      home: AuthPage(),
     );
   }
 }
 
 Future<void> _initFirebase() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+}
+
+Dio _initDio() {
+  final options = BaseOptions(
+    baseUrl: 'https://api.mytravaly.com/public/v1/',
+    connectTimeout: Duration(seconds: 5),
+    receiveTimeout: Duration(seconds: 3),
+  );
+  final dio = Dio(options);
+  dio.interceptors.addAll([
+    LogInterceptor(
+      request: true,
+      requestBody: true,
+      requestHeader: true,
+      responseBody: true,
+    ),
+  ]);
+  return dio;
 }
