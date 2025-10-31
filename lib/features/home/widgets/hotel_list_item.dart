@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shimmer_animation/shimmer_animation.dart';
 import 'package:travaly/data/model/property_dto.dart';
 
 class HotelListItem extends StatelessWidget {
@@ -59,6 +60,22 @@ class HotelListItem extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class HotelListItemShimmer extends StatelessWidget {
+  const HotelListItemShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer(
+      color: ColorScheme.of(context).primaryContainer,
+      child: Container(
+        width: double.infinity,
+        height: 150,
+        margin: EdgeInsets.all(16),
       ),
     );
   }

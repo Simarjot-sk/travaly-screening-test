@@ -10,6 +10,12 @@ class HotelList extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
+        if(state.isLoading){
+          return ListView.builder(
+            itemCount: 10,
+            itemBuilder: (context, index) => HotelListItemShimmer(),
+          );
+        }
         if (state.hotels.isNotEmpty) {
           return ListView.builder(
             itemCount: state.hotels.length,
